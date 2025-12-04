@@ -3,6 +3,7 @@ import random
 import hashlib
 import time
 from django.utils import timezone
+from rest_framework.exceptions import NotFound
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -13,15 +14,17 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework_simplejwt.tokens import RefreshToken
 from apps.authentication.serializers import (
+    LoginResponseSerializer,
+    LoginSerializer,
     RegisterSerializer,
     UserSerializer,
-    password_regex,
-    LoginResponseSerializer,
+    password_regex
 )
 from core.settings import SIMPLE_JWT
 from apps.authentication.tasks import send_otp
 from core.utils.jwt import get_tokens_for_user
 from core.utils.permissions import NotAuthenticate
+from user.models import User
 
 
 
@@ -65,8 +68,58 @@ class RegisterAPIView(APIView):
         return Response(data=data, status=status.HTTP_201_CREATED)
 
 
-class ActivateUserAPIView (APIView) : 
+class LoginAPIView(APIView):
+    serializer_class = LoginSerializer
+    permission_classes = (NotAuthenticate,)
 
+    @swagger_auto_schema(
+        operation_summary="login with password",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                "phone" : openapi.Schema(type=openapi.TYPE_STRING),
+                "password" : openapi.Schema(type=openapi.TYPE_STRING)
+            },
+            required=("phone","password")
+        ),
+        responses={
+            200: LoginResponseSerializer
+        }
+    )
+    def post(self,request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        # check phone
+        phone = serializer.validated_data['phone']
+        password = serializer.validated_data['password']
+
+        user = User.objects.filter(
+            phone=phone
+        ).only(
+            "is_active", "is_staff", 'phone', 'password'
+        ).first()
+        if not user:
+            raise NotFound("نام کاربری یا رمز عبور اشتباه هست")
+        
+        # check password
+        password = user.check_password(password)
+        if not password:
+            raise NotFound("نام کاربری یا رمز عبور اشتباه هست")
+        
+        # create token
+        token = get_tokens_for_user(user)
+        data = {
+            "token": token,
+            "is_active": user.is_active,
+            "is_staff": user.is_staff,
+            "expired_date": timezone.now() + timedelta(days=SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].days),
+            "expire_timestamp": time.time() + SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds()
+        }
+        return Response(data=data)
+
+
+class ActivateUserAPIView(APIView):
     @swagger_auto_schema(
         operation_summary="Activate User Account",
         request_body=openapi.Schema(
@@ -76,10 +129,7 @@ class ActivateUserAPIView (APIView) :
                 "otp_code" : openapi.Schema(type=openapi.TYPE_STRING),
             },
             required=["phone","otp_code"],
-        ),
-        responses={
-            "200" : LoginResponseSerializer(),
-        }
+        )
     )
     def post (self,request) : 
         try : 
@@ -147,49 +197,7 @@ class ChangeUserPassword (APIView) :
             )
         
 
-class LoginAPIView (APIView) : 
-
-
-    @swagger_auto_schema(
-        operation_summary="login with password",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                "phone" : openapi.Schema(type=openapi.TYPE_STRING),
-                "password" : openapi.Schema(type=openapi.TYPE_STRING)
-            },
-            required=["phone","password"]
-        ),
-        responses={
-            200 : LoginResponseSerializer(),
-        }
-    )
-    def post (self,request) : 
-        try : 
-            phone = request.data["phone"]
-        except : 
-            return Response({"phone" : "required ."},status.HTTP_400_BAD_REQUEST)
-        try : 
-            password = request.data["password"]
-        except : 
-            return Response({"password" : "required ."},status.HTTP_400_BAD_REQUEST)
-        
-        try : 
-            user = get_user_model().objects.get(phone=phone)
-        except get_user_model().DoesNotExist : 
-            return Response({"error" : "user does not exist ."},status.HTTP_400_BAD_REQUEST)
-        
-        if user.check_password(password) : 
-            refresh_token = RefreshToken().for_user(user)
-            data = {
-                "user" : UserSerializer(user).data,
-                "access_token" : str(refresh_token.access_token),
-                "refresh_token" : str(refresh_token),
-            }
-            return Response(data,status.HTTP_200_OK)
-        else :
-            return Response({"password" : "password is incorrect ."},status.HTTP_400_BAD_REQUEST)
-    
+ 
 
 class SendOptCodeAPIView (APIView) : 
 

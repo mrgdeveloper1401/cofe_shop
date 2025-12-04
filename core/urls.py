@@ -8,7 +8,7 @@ from debug_toolbar.toolbar import debug_toolbar_urls
 
 schema = get_schema_view(
     info=openapi.Info(
-        title="Yadak-Sadra",
+        title="cofe",
         default_version="1.0.0",
         license=openapi.License(name="MIT")
     ),

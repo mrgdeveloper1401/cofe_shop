@@ -27,9 +27,14 @@ class LoginSerializer(serializers.Serializer):
     phone = serializers.CharField(validators=(PHONE_VALIDATOR,))
 
 
+class tokenResponseSerializer(serializers.Serializer):
+    access = serializers.CharField()
+    refresh = serializers.CharField()
+
+
 class LoginResponseSerializer(serializers.Serializer):
-    user = UserSerializer()
-    access_token = serializers.CharField()
-    refresh_token = serializers.CharField()
-    is_staff = serializers.BooleanField()
+    token = tokenResponseSerializer()
     is_active = serializers.BooleanField()
+    is_staff = serializers.BooleanField()
+    expired_date = serializers.DateTimeField()
+    expire_timestamp = serializers.FloatField()
