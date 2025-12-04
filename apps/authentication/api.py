@@ -1,3 +1,8 @@
+from datetime import timedelta
+import random
+import hashlib
+import time
+from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -6,18 +11,23 @@ from django.utils.crypto import constant_time_compare
 from django.contrib.auth import get_user_model
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-import random
-import hashlib
 from rest_framework_simplejwt.tokens import RefreshToken
 from apps.authentication.serializers import (
-    RegisterSerializer,UserSerializer,password_regex,
+    RegisterSerializer,
+    UserSerializer,
+    password_regex,
     LoginResponseSerializer,
 )
-from apps.authentication.tasks import send_otp,check_user_is_active
+from core.settings import SIMPLE_JWT
+from apps.authentication.tasks import send_otp
+from core.utils.jwt import get_tokens_for_user
+from core.utils.permissions import NotAuthenticate
 
 
 
-class RegisterAPIView (APIView) : 
+class RegisterAPIView(APIView):
+    serializer_class = RegisterSerializer
+    permission_classes = (NotAuthenticate,)
 
     @swagger_auto_schema(
         operation_summary="Register User",
@@ -28,21 +38,32 @@ class RegisterAPIView (APIView) :
                 "phone" : openapi.Schema(type=openapi.TYPE_STRING),
                 "password" : openapi.Schema(type=openapi.TYPE_STRING),
             },
-            required=["username","phone","password"],
-        )
+            required=("username","phone","password"),
+        ),
     )
-    def post (self,request) : 
-        serializer = RegisterSerializer(data=request.data)
-        if serializer.is_valid() : 
-            user = serializer.save()
-            send_otp.apply_async(
-                args=[user.id],
-                link=check_user_is_active.si(user.id)
-            )
-            return Response({"data" : "otp has been sent"})
-        else : 
-            return Response(serializer.errors,status.HTTP_400_BAD_REQUEST)
-        
+    def post (self,request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = serializer.save()
+
+        # send otp by celery
+        # send_otp.apply_async(
+        #     args=[user.id],
+        #     link=check_user_is_active.si(user.id)
+        # )
+
+        # create token
+        token = get_tokens_for_user(user)
+        data = {
+            "token": token,
+            "is_active": user.is_active,
+            "is_staff": user.is_staff,
+            "expired_date": timezone.now() + timedelta(days=SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].days),
+            "expire_timestamp": time.time() + SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds()
+        }
+        return Response(data=data, status=status.HTTP_201_CREATED)
+
 
 class ActivateUserAPIView (APIView) : 
 
