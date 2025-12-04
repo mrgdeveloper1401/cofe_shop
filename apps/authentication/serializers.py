@@ -15,11 +15,20 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = ("username","phone","password")
 
+    def create(self, validated_data):
+        return User.objects.create_user(**validated_data)
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ("username","phone")
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField()
+    new_password = serializers.CharField()
+    confirm_new_password = serializers.CharField()
 
 
 class LoginSerializer(serializers.Serializer):

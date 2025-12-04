@@ -14,6 +14,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework_simplejwt.tokens import RefreshToken
 from apps.authentication.serializers import (
+    ChangePasswordSerializer,
     LoginResponseSerializer,
     LoginSerializer,
     RegisterSerializer,
@@ -22,6 +23,7 @@ from apps.authentication.serializers import (
 )
 from core.settings import SIMPLE_JWT
 from apps.authentication.tasks import send_otp
+from core.utils.exceptions import PasswordNotEqaul, PasswordNotMatch
 from core.utils.jwt import get_tokens_for_user
 from core.utils.permissions import NotAuthenticate
 from user.models import User
@@ -164,39 +166,57 @@ class ActivateUserAPIView(APIView):
             return Response({"error" : "invalid otp_code ."},status.HTTP_400_BAD_REQUEST)
         
 
-class ChangeUserPassword (APIView) :
-
-    permission_classes = [IsAuthenticated]
+class ChangeUserPassword(APIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ChangePasswordSerializer
 
     @swagger_auto_schema(
         operation_summary="change password",
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
-                "password" : openapi.Schema(type=openapi.TYPE_STRING)
+                "old_password" : openapi.Schema(type=openapi.TYPE_STRING),
+                "new_password" : openapi.Schema(type=openapi.TYPE_STRING),
+                "confirm_new_password" : openapi.Schema(type=openapi.TYPE_STRING)
             },
             required=["password"],
         )
     )
-    def post (self,request) : 
+    def post(self,request):
+        # import ipdb
+        # ipdb.set_trace()
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
         
-        try : 
-            password = request.data["password"]
-        except : 
-            return Response({"password" : "required ."},status.HTTP_400_BAD_REQUEST)
-        
-        user = request.user
-        if password_regex.match(password) : 
-            user.set_password(password)
-            user.save()
-            return Response({"data" : "password has beed changed ."},status.HTTP_200_OK)
-        else : 
-            return Response(
-                {"password" : "password must contain upper,lower and interger character ."},
-                status.HTTP_400_BAD_REQUEST
-            )
-        
+        # data
+        old_passwod = serializer.validated_data['old_password']
+        new_password = serializer.validated_data['new_password']
+        confirm_new_password = serializer.validated_data['confirm_new_password']
 
+        # get user
+        user = User.objects.filter(
+            id=request.user.id
+        ).only("password").first()
+        if not user:
+            raise NotFound("نام کاربری یا رمز عبور اشتباه هست")
+
+        # check old password
+        check_old_passwor = user.check_password(old_passwod)
+        if not check_old_passwor:
+            raise PasswordNotMatch()
+        
+        # check equal new_password and confrim_new_password
+        if new_password != confirm_new_password:
+            raise PasswordNotEqaul()
+        
+        # set new password
+        user.set_password = confirm_new_password
+        user.save()
+        
+        data = {
+            "message": "پسورد شما با موفقیت تغییر یافت"
+        }
+        return Response(data=data)
  
 
 class SendOptCodeAPIView (APIView) : 
