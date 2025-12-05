@@ -166,8 +166,8 @@ STATIC_ROOT = os.getenv("STATIC_ROOT", BASE_DIR / "static")
 MEDIA_URL = "media/"
 
 # django storage settings
-USE_DJANGO_STORAGE = bool(os.getenv("USE_DJANGO_STORAGE", True))
-if USE_DJANGO_STORAGE:
+USE_DJANGO_STORAGE = os.getenv("USE_DJANGO_STORAGE", False)
+if USE_DJANGO_STORAGE == "True":
     STORAGES['default']['BACKEND'] = 'storages.backends.s3.S3Storage'
     # config django storage
     AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
@@ -176,7 +176,7 @@ if USE_DJANGO_STORAGE:
     AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL")
     AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
     AWS_DEFAULT_ACL = os.getenv("AWS_DEFAULT_ACL")
-    AWS_QUERYSTRING_AUTH = os.getenv("AWS_QUERYSTRING_AUTH")
+    AWS_QUERYSTRING_AUTH = bool(os.getenv("AWS_QUERYSTRING_AUTH", False))
 else:
     MEDIA_ROOT = os.getenv("MEDIA_ROOT", BASE_DIR / "media")
 
