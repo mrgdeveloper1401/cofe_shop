@@ -1,5 +1,5 @@
 from django.contrib import admin
-from nested_inline.admin import NestedModelAdmin,NestedTabularInline
+from nested_inline.admin import NestedModelAdmin, NestedTabularInline
 from apps.template.models import (
     SlideBox,
     SlideImage,
@@ -10,45 +10,64 @@ from apps.template.models import (
     License
 )
 
-class SlideImageInline (admin.TabularInline) : 
+class SlideImageInline(admin.TabularInline):
     extra = 0
-    exclude = ["id"]
     model = SlideImage
 
 
-class SlideBoxInline (admin.TabularInline) : 
+class SlideBoxInline(admin.TabularInline):
     extra = 0
-    exclude = ['id']
     model = SlideBox
 
-@admin.register(SliderConfig)
-class SliderConfigAdmin (admin.ModelAdmin) :
-    exclude = ["id"]
-    inlines = [SlideImageInline,SlideBoxInline]
 
-
-class LicenseInline (NestedTabularInline) : 
+class LicenseInline(NestedTabularInline):
     model = License
     extra = 0
-    exclude = ["id"]
 
 
-class FooterLinkInline (NestedTabularInline) : 
+class FooterLinkInline(NestedTabularInline):
     model = FooterLink
-    exclude = ["id"]
     extra = 0
 
 
-class GrouLinkFooterInline (NestedTabularInline) : 
+class GrouLinkFooterInline(NestedTabularInline):
     model = GrouLinkFooter
-    exclude = ["id"]
     extra = 0
-    inlines = [FooterLinkInline]
+    inlines = (FooterLinkInline,)
+
 
 @admin.register(Footer)
-class FooterAdmin (NestedModelAdmin) : 
-    exclude = ["id"]
-    list_display = ["is_active","phone","email","address"]
+class FooterAdmin(NestedModelAdmin):
+    list_display = ("id", "phone","is_active","email","address")
+    list_display_links = ("id", "phone")
+    inlines = (LicenseInline, GrouLinkFooterInline)
 
-    inlines = [LicenseInline,GrouLinkFooterInline]
 
+@admin.register(SliderConfig)
+class SliderConfigAdmin(admin.ModelAdmin):
+    inlines = (SlideImageInline, SlideBoxInline)
+
+
+@admin.register(SlideBox)
+class SlideBoxAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(SlideImage)
+class SlideImageAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(License)
+class LicenseAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(GrouLinkFooter)
+class GrouLinkFooterAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(FooterLink)
+class FooterLinkAdmin(admin.ModelAdmin):
+    pass

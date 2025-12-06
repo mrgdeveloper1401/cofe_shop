@@ -2,13 +2,20 @@ from django.db import models
 from django.utils.text import gettext_lazy as _, slugify
 from mptt.models import MPTTModel, TreeForeignKey
 from apps.core_app.models import ActiveMixin, CreateMixin, UpdateMixin, Image
-
+from user.models import User
 
 
 class Country(ActiveMixin, UpdateMixin, CreateMixin):
     name = models.CharField(max_length=256, unique=True)
-    slug = models.SlugField(allow_unicode=True, null=True, blank=True)
-    flag = models.ImageField(upload_to="product/country/",null=True,blank=True)
+    # slug = models.SlugField(allow_unicode=True, null=True, blank=True)
+    flag = models.ForeignKey(
+        Image,
+        related_name="country_images",
+        on_delete=models.PROTECT,
+        verbose_name=_("عکس فلگ"),
+        blank=True,
+        null=True
+    )
 
     class Meta:
         db_table = "country"
@@ -25,17 +32,23 @@ class Country(ActiveMixin, UpdateMixin, CreateMixin):
         return super().save(**kwarges)
 
 
-class Brand(models.Model):
+class Brand(CreateMixin, UpdateMixin, ActiveMixin):
     is_own = models.BooleanField(default=False, help_text="is brand is for this company ?")
-    country = models.ForeignKey(
-        to=Country,
+    # country = models.ForeignKey(
+    #     to=Country,
+    #     on_delete=models.PROTECT,
+    #     null=True,
+    #     blank=True
+    # )
+    logo = models.ForeignKey(
+        Image,
+        related_name="brand_logo",
         on_delete=models.PROTECT,
-        null=True,
-        blank=True
+        blank=True,
+        null=True
     )
-    logo = models.ImageField(upload_to="product/brand/")
     name = models.CharField(max_length=256)
-    slug = models.SlugField(allow_unicode=True, max_length=256)
+    # slug = models.SlugField(allow_unicode=True, max_length=256)
     
     def save(self,**kwargs) : 
         self.slug = slugify(self.name, allow_unicode=True)
@@ -79,7 +92,8 @@ class Product(CreateMixin, UpdateMixin, ActiveMixin):
     title = models.CharField(_("عنوان محصول"), max_length=256)
     slug = models.SlugField(_("اسلاگ"), allow_unicode=True, max_length=256)
     # technical_code = models.CharField(max_length=256,null=True,blank=True)
-    commercial_code = models.CharField(max_length=256,null=True,blank=True)
+    commercial_code = models.CharField(_("کد تجاری"), max_length=256,null=True,blank=True)
+    sku = models.CharField(_("شناسه محصول"), null=True) # TODO, when clean migration remove these field
     # main_image = models.CharField(max_length=256)
     # country = models.ForeignKey(
     #     to=Country,
@@ -121,13 +135,18 @@ class Product(CreateMixin, UpdateMixin, ActiveMixin):
         return self.price
 
 
-class ProductImage(models.Model):
+class ProductImage(CreateMixin, UpdateMixin, ActiveMixin):
     product = models.ForeignKey(
         to=Product,
         on_delete=models.PROTECT,
         related_name="images"
     )
-    image = models.CharField(max_length=256)
+    image = models.ForeignKey(
+        Image,
+        related_name="product_images",
+        on_delete=models.PROTECT,
+        null=True
+    )
 
     class Meta:
         db_table = "product_image"
@@ -144,3 +163,24 @@ class ProductFeature(models.Model):
 
     class Meta:
         db_table = "product_feature"
+
+
+class ProductReview(ActiveMixin, CreateMixin, UpdateMixin):
+    product = models.ForeignKey(
+        Product, 
+        related_name="reviews", 
+        on_delete=models.PROTECT,
+        verbose_name=_("محصول")
+        )
+    user = models.ForeignKey(
+        User, 
+        on_delete=models.PROTECT,
+        related_name="user_reviews",
+        verbose_name=_("کاربر")
+        )
+    rating = models.PositiveSmallIntegerField(_("نمرد دهی"))
+    comment = models.TextField(_("نظر"))
+
+    class Meta:
+        ordering = ("id",)
+        db_table = "product_review"

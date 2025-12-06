@@ -1,43 +1,44 @@
 from django.db import models
-import uuid
+from django.utils.translation import gettext_lazy as _
 
-from apps.core_app.models import ActiveMixin
+from apps.core_app.models import ActiveMixin, CreateMixin, UpdateMixin
 
 
-class SliderConfig(models.Model):
-    is_active = models.BooleanField(default=False)
+class SliderConfig(CreateMixin, UpdateMixin, ActiveMixin):
     class Meta:
         db_table = "slider_config"
 
 
-class SlideBox(models.Model):
+class SlideBox(CreateMixin, UpdateMixin, ActiveMixin):
     slider = models.ForeignKey(
         to=SliderConfig,
         on_delete=models.PROTECT,
         related_name="boxes",
+        verbose_name=_("اسلایدر")
     )
-    image_url = models.ImageField(upload_to="media/template/slider/slide-box")
-    title =  models.CharField(max_length=256)
-    link = models.CharField(default="/",max_length=256)
+    image_url = models.ImageField(_("ادرس عکس"), upload_to="media/template/slider/slide-box")
+    title =  models.CharField(_("عنوان عکس"), max_length=256)
+    link = models.CharField(_("لینک عکس"), default="/",max_length=256)
 
     class Meta:
         db_table = "slider_box"
 
 
-class SlideImage(models.Model):
+class SlideImage(CreateMixin, UpdateMixin, ActiveMixin):
     slider = models.ForeignKey(
         to=SliderConfig,
         on_delete=models.PROTECT,
         related_name="images",
+        verbose_name=_("اسلایدر")
     )
-    image_url = models.ImageField(upload_to="media/template/slider/slides")
+    image_url = models.ImageField(_("لینک عکس"), upload_to="media/template/slider/slides")
 
     class Meta:
         db_table = "slider_image"
 
 
-class Footer(ActiveMixin):
-    instagram_page = models.CharField(max_length=128,null=True,blank=True)
+class Footer(CreateMixin, UpdateMixin, ActiveMixin):
+    instagram_page = models.CharField(_(""), max_length=128,null=True,blank=True)
     telegram_channel = models.CharField(max_length=128,null=True,blank=True)
     whatsapp_support = models.CharField(max_length=128,null=True,blank=True)
     phone = models.CharField(max_length=13,null=True,blank=True)

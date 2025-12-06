@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from user.models import User
+
 
 
 class ActiveMixin(models.Model):
@@ -42,7 +42,7 @@ class Image(CreateMixin, UpdateMixin, ActiveMixin):
         verbose_name=_("ای دی عکس اپلود شده درون با سلام")
     )
     created_by = models.ForeignKey(
-        User,
+        "user.User",
         on_delete=models.PROTECT,
         related_name="upload_images",
         verbose_name=_("کاربر")
@@ -60,3 +60,11 @@ class Image(CreateMixin, UpdateMixin, ActiveMixin):
         self.width = self.image.width
         self.height = self.image.height
         return super().save(*args, **kwargs)
+
+
+class PublicNotification(ActiveMixin, CreateMixin, UpdateMixin):
+    title = models.CharField(_("عنوان"), max_length=255)
+    body = models.TextField(_("متن نوتیفکیشن"))
+    
+    class Meta:
+        db_table = "public_notification"
