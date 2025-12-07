@@ -200,6 +200,10 @@ CACHES = {
             "SOCKET_CONNECT_TIMEOUT": os.getenv("SOCKET_CONNECT_TIMEOUT", 5),
             "SOCKET_TIMEOUT": os.getenv("SOCKET_TIMEOUT", 5),
             "SERIALIZER": os.getenv("REDIS_SERIALIZER", "django_redis.serializers.json.JSONSerializer"),
+            "COMPRESSOR": os.getenv("REDIS_COMPRESSOR", "django_redis.compressors.zlib.ZlibCompressor"),
+            "COMPRESSOR_KWARGS": {
+                "level": int(os.getenv("COMPRESSOR_LEVEL_ARGS", 6))
+            },
             "CONNECTION_POOL_KWARGS": {
                 "max_connections": os.getenv("REDIS_POOL_MAX_CONNECTION", 100),
                 "retry_on_timeout": os.getenv("REDIS_POOL_RETRY_TIMEOUT", True),

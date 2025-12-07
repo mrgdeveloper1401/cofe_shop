@@ -10,17 +10,17 @@ class HeaderSiteSerializer(serializers.ModelSerializer):
         fields = ("title",)
 
 
-class SlideImageSerializer (serializers.ModelSerializer):
+class SlideImageSerializer(serializers.ModelSerializer):
     class Meta : 
         model = models.SlideImage
         exclude = ["id","slider"]
 
 
-class SlideBoxSerializer (serializers.ModelSerializer) : 
-
-    class Meta : 
+class SlideBoxSerializer(serializers.ModelSerializer):
+    class Meta:
         model = models.SlideBox
-        exclude = ["id","slider"]
+        fields = "__all__"
+
 
 class SliderConfigSerializer (serializers.ModelSerializer) : 
 

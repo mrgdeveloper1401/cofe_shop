@@ -85,3 +85,4 @@ class HeaderAdmin(admin.ModelAdmin):
     list_per_page = 20
     search_fields = ("title",)
     search_help_text = _("برای جست و جو میتوانید از عنوان هدر استفاده کنید")
+    list_editable = ("is_active",)
