@@ -44,7 +44,13 @@ class SlideImage(CreateMixin, UpdateMixin, ActiveMixin):
         related_name="images",
         verbose_name=_("اسلایدر")
     )
-    image_url = models.ImageField(_("لینک عکس"), upload_to="media/template/slider/slides")
+    image = models.ForeignKey(
+        Image,
+        on_delete=models.PROTECT,
+        related_name="slider_images",
+        verbose_name=_("عکس اسلایدر"),
+        null=True # TODO when clean migration remove these field
+    )
 
     class Meta:
         db_table = "slider_image"

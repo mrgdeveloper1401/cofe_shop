@@ -58,6 +58,23 @@ class SliderBoxView(views.APIView):
         return response.Response(serializer.data)
 
 
+class SliderImageView(views.APIView):
+    serializer_class = serializers.SlideImageSerializer
+
+    def get(self, request):
+        # get cache
+        get_cache = cache.get("slider_image")
+        if get_cache:
+            return response.Response(get_cache)
+
+        queryset = models.SlideImage.objects.filter(is_active=True).select_related("image").only("image__image")
+        serializer = self.serializer_class(queryset, many=True)
+
+        # set cache
+        cache.set("slider_image", serializer.data, timeout=60 * 60 * 24 * 30)
+        return response.Response(serializer.data)
+
+
 class IndexAPIView(views.APIView) : 
 
 

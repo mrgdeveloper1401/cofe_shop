@@ -66,7 +66,12 @@ class SlideBoxAdmin(admin.ModelAdmin):
 
 @admin.register(SlideImage)
 class SlideImageAdmin(admin.ModelAdmin):
-    pass
+    raw_id_fields = ("slider", "image")
+    list_display = ("id", "slider_id", "image_id", "is_active", "created_at", "updated_at")
+    list_filter = ("is_active",)
+    list_display_links = ("id", "slider_id", "image_id")
+    list_per_page = 20
+    list_editable = ("is_active",)
 
 
 @admin.register(License)

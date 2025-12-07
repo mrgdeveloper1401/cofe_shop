@@ -11,9 +11,14 @@ class HeaderSiteSerializer(serializers.ModelSerializer):
 
 
 class SlideImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
     class Meta : 
         model = models.SlideImage
-        exclude = ["id","slider"]
+        fields = ("image_url",)
+
+    def get_image_url(self, obj):
+        return obj.image.get_image_url
 
 
 class SlideBoxSerializer(serializers.ModelSerializer):
