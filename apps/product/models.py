@@ -95,7 +95,7 @@ class Product(CreateMixin, UpdateMixin, ActiveMixin):
     slug = models.SlugField(_("اسلاگ"), allow_unicode=True, max_length=256)
     # technical_code = models.CharField(max_length=256,null=True,blank=True)
     commercial_code = models.CharField(_("کد تجاری"), max_length=256,null=True,blank=True)
-    sku = models.CharField(_("شناسه محصول"), null=True) # TODO, when clean migration remove these field
+    sku = models.CharField(_("شناسه محصول"))
     # main_image = models.CharField(max_length=256)
     # country = models.ForeignKey(
     #     to=Country,
@@ -116,7 +116,6 @@ class Product(CreateMixin, UpdateMixin, ActiveMixin):
     description = CKEditor5Field(
         _("توضیح در مورد  محصول"),
         config_name='extends',
-        null=True # TODO, when clean migration remove these field
     )
     # time_added = models.DateTimeField(auto_now_add=True)
     is_available = models.BooleanField(_("محصول در دسترس هست"), default=True)
@@ -177,7 +176,6 @@ class ProductFeature(ActiveMixin, CreateMixin, UpdateMixin):
         on_delete=models.PROTECT,
         related_name="keys",
         verbose_name=_("ویژگی"),
-        null=True # TODO, when clean migration remove these field
     )
     value = models.CharField(max_length=512)
 
@@ -185,7 +183,7 @@ class ProductFeature(ActiveMixin, CreateMixin, UpdateMixin):
         db_table = "product_feature"
 
 
-class ProductReview(ActiveMixin, CreateMixin, UpdateMixin):
+class ProductReview(MPTTModel, ActiveMixin, CreateMixin, UpdateMixin):
     product = models.ForeignKey(
         Product, 
         related_name="reviews", 
@@ -198,8 +196,16 @@ class ProductReview(ActiveMixin, CreateMixin, UpdateMixin):
         related_name="user_reviews",
         verbose_name=_("کاربر")
         )
-    rating = models.PositiveSmallIntegerField(_("نمرد دهی"))
+    rating = models.PositiveSmallIntegerField(_("نمرد دهی"), blank=True, null=True)
     comment = models.TextField(_("نظر"))
+    parent = TreeForeignKey(
+        "self",
+        on_delete=models.PROTECT,
+        related_name="comment_parents",
+        verbose_name=_("کامنت والد"),
+        null=True,
+        blank=True
+    )
 
     class Meta:
         ordering = ("id",)

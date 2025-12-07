@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from rest_framework.generics import get_object_or_404
+
 from apps.product import models
 
 
@@ -69,3 +71,50 @@ class RetrieveProductSerializer(ProductSerializet):
     class Meta(ProductSerializet.Meta):
         model = models.Product
         fields = ProductSerializet.Meta.fields + ("short_description", "description", "product_features")
+
+
+class ProductReviewSerializer(serializers.ModelSerializer):
+    parent_number = serializers.IntegerField(required=False)
+    username = serializers.SerializerMethodField()
+    is_owner = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.ProductReview
+        fields = (
+            "id",
+            "rating",
+            "comment",
+            "parent_id",
+            "parent_number",
+            "lft",
+            "rght",
+            "level",
+            "tree_id",
+            "username",
+            "is_owner"
+        )
+        extra_kwargs = {
+            "lft": {"read_only": True},
+            "rght": {"read_only": True},
+            "level": {"read_only": True},
+            "tree_id": {'read_only': True},
+            "parent_id": {"read_only": True}
+        }
+
+    def create(self, validated_data):
+        parent_number = validated_data.pop("parent_number", None)
+        user_id = self.context['request'].user.id
+        product_id = int(self.context['product_pk'])
+
+        if parent_number is None:
+            return models.ProductReview.objects.create(user_id=user_id, product_id=product_id, **validated_data)
+        else:
+            parent_obj = get_object_or_404(models.ProductReview, is_active=True, id=parent_number, product_id=product_id)
+            return models.ProductReview.objects.create(user_id=user_id, product_id=product_id, parent_id=parent_obj.id, **validated_data)
+
+    def get_username(self, obj):
+        return obj.user.username
+
+    def get_is_owner(self, obj):
+        user_id = self.context['request'].user.id
+        return obj.user_id == user_id

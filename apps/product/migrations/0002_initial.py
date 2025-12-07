@@ -10,14 +10,14 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('core_app', '0001_initial'),
+        ('product', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='image',
-            name='created_by',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='upload_images', to=settings.AUTH_USER_MODEL, verbose_name='کاربر'),
+            model_name='productreview',
+            name='user',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='user_reviews', to=settings.AUTH_USER_MODEL, verbose_name='کاربر'),
         ),
     ]

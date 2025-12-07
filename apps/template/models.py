@@ -28,7 +28,6 @@ class SlideBox(CreateMixin, UpdateMixin, ActiveMixin):
         on_delete=models.PROTECT,
         related_name="slider_box_images",
         verbose_name=_("عکس باکس"),
-        null=True # TODO when clean migration remove these field
     )
     title =  models.CharField(_("عنوان عکس"), max_length=256)
     link = models.CharField(_("لینک عکس"), default="/",max_length=256)
@@ -49,7 +48,6 @@ class SlideImage(CreateMixin, UpdateMixin, ActiveMixin):
         on_delete=models.PROTECT,
         related_name="slider_images",
         verbose_name=_("عکس اسلایدر"),
-        null=True # TODO when clean migration remove these field
     )
 
     class Meta:

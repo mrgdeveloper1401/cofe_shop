@@ -102,12 +102,13 @@ class ProductImageAdmin(admin.ModelAdmin):
 
 @admin.register(models.ProductReview)
 class ProductReviewAdmin(admin.ModelAdmin):
-    list_display = ("id", "user_id", "product_id", "rating", "is_active", "created_at", "updated_at")
+    list_display = ("id", "user_id", "product_id", "parent_id", "rating", "is_active", "created_at", "updated_at")
     list_per_page = 20
-    list_filter = ("is_active", "created_at")
+    list_filter = ("is_active", "created_at", ParentCategoryFilter)
     search_fields = ("user__phone", "user__username")
     search_help_text = _("برای جست و جو میتوانید از شماره موبایل یا یوزرنیم کاربر استفاده کنید")
     raw_id_fields = ('product', "user")
+    list_editable = ("is_active",)
 
 
 @admin.register(models.Attribute)

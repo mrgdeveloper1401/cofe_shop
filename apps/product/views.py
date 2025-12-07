@@ -1,11 +1,12 @@
 from django.db.models import Prefetch
-from rest_framework import views, response, mixins, viewsets, filters
+from rest_framework import views, response, mixins, viewsets, filters, permissions
 from django.core.cache import cache
 from django_filters.rest_framework import DjangoFilterBackend
 
 from apps.product import models
 from apps.product import serializers
 from apps.product.filters import ProductFilters
+from core.utils.paginations import ScrollPagination
 
 
 class ParentProductCategoryView(views.APIView):
@@ -66,3 +67,33 @@ class ProductView(
             return serializers.RetrieveProductSerializer
         else:
             return serializers.ProductSerializet
+
+
+class ProductReviewView(viewsets.ModelViewSet):
+    serializer_class = serializers.ProductReviewSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    pagination_class = ScrollPagination
+
+    def get_queryset(self):
+        return models.ProductReview.objects.filter(
+            is_active=True,
+            product_id=self.kwargs['product_pk']
+            ).select_related("user").only(
+            "rating",
+            "comment",
+            "parent_id",
+            "tree_id",
+            "level",
+            "rght",
+            "lft",
+            "user__username"
+        ).order_by("-id")
+
+    def perform_destroy(self, instance):
+        instance.is_active = False
+        instance.save()
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['product_pk'] = self.kwargs['product_pk']
+        return context

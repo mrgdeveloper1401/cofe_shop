@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'nested_inline',
     'rest_framework_simplejwt',
     "django_filters",
-    "django_ckeditor_5"
+    "django_ckeditor_5",
+    "mptt"
 ]
 
 MIDDLEWARE = [
