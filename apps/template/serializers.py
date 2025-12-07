@@ -17,9 +17,14 @@ class SlideImageSerializer(serializers.ModelSerializer):
 
 
 class SlideBoxSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
     class Meta:
         model = models.SlideBox
-        fields = "__all__"
+        fields = ("title", "link", "image_url")
+
+    def get_image_url(self, obj):
+        return obj.image.get_image_url
 
 
 class SliderConfigSerializer (serializers.ModelSerializer) : 

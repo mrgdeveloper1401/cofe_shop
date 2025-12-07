@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.core_app.models import ActiveMixin, CreateMixin, UpdateMixin
+from apps.core_app.models import ActiveMixin, CreateMixin, UpdateMixin, Image
 
 
 class HeaderSite(ActiveMixin, UpdateMixin, CreateMixin):
@@ -21,9 +21,15 @@ class SlideBox(CreateMixin, UpdateMixin, ActiveMixin):
         to=SliderConfig,
         on_delete=models.PROTECT,
         related_name="boxes",
-        verbose_name=_("اسلایدر")
+        verbose_name=_("اسلایدر"),
     )
-    image_url = models.ImageField(_("ادرس عکس"), upload_to="media/template/slider/slide-box")
+    image = models.ForeignKey(
+        Image,
+        on_delete=models.PROTECT,
+        related_name="slider_box_images",
+        verbose_name=_("عکس باکس"),
+        null=True # TODO when clean migration remove these field
+    )
     title =  models.CharField(_("عنوان عکس"), max_length=256)
     link = models.CharField(_("لینک عکس"), default="/",max_length=256)
 

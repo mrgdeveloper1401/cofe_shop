@@ -54,7 +54,14 @@ class SliderConfigAdmin(admin.ModelAdmin):
 
 @admin.register(SlideBox)
 class SlideBoxAdmin(admin.ModelAdmin):
-    pass
+    list_display = ("id", "image_id", "title", "is_active", "created_at", "updated_at")
+    list_display_links = ("id", "image_id", "title")
+    list_per_page = 20
+    list_editable = ("is_active",)
+    search_fields = ("title",)
+    search_help_text = _("برای جست و جو میتوانید از عنوان استفاده کنید")
+    raw_id_fields = ("image", "slider")
+    list_filter = ("is_active", "created_at")
 
 
 @admin.register(SlideImage)
