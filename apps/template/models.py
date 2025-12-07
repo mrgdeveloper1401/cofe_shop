@@ -4,6 +4,13 @@ from django.utils.translation import gettext_lazy as _
 from apps.core_app.models import ActiveMixin, CreateMixin, UpdateMixin
 
 
+class HeaderSite(ActiveMixin, UpdateMixin, CreateMixin):
+    title = models.CharField(_("عنوان هدر"), max_length=30)
+    
+    class Meta:
+        db_table = "header_site"
+
+
 class SliderConfig(CreateMixin, UpdateMixin, ActiveMixin):
     class Meta:
         db_table = "slider_config"

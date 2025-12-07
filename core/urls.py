@@ -17,11 +17,11 @@ schema = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("template/",include("apps.template.urls")),
-    path("product/",include("apps.product.urls")),
-    path("auth/",include("apps.authentication.urls")),
-    path("cart/",include("apps.cart.urls")),
-    path("",schema.with_ui("swagger",cache_timeout=0),name="swagger"),
+    path("template/v1/", include("apps.template.urls", namespace="v1_template")),
+    path("product/v1/", include("apps.product.urls")),
+    path("auth/v1/", include("apps.authentication.urls")),
+    path("cart/v1/", include("apps.cart.urls")),
+    path("docs/v1/", schema.with_ui("swagger",cache_timeout=0), name="swagger"),
 ]
 
 if settings.DEBUG :

@@ -1,20 +1,25 @@
 from rest_framework import serializers
+
 from apps.product.serializers import BrandSerializer,CountrySerializer,ProductCategorySerializer
-from apps.template.models import (
-    SlideBox,SlideImage,SliderConfig,
-    Footer,FooterLink,GrouLinkFooter,License
-)
+from apps.template import models
 
-class SlideImageSerializer (serializers.ModelSerializer) : 
 
+class HeaderSiteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.HeaderSite
+        fields = ("title",)
+
+
+class SlideImageSerializer (serializers.ModelSerializer):
     class Meta : 
-        model = SlideImage
+        model = models.SlideImage
         exclude = ["id","slider"]
+
 
 class SlideBoxSerializer (serializers.ModelSerializer) : 
 
     class Meta : 
-        model = SlideBox
+        model = models.SlideBox
         exclude = ["id","slider"]
 
 class SliderConfigSerializer (serializers.ModelSerializer) : 
@@ -24,20 +29,20 @@ class SliderConfigSerializer (serializers.ModelSerializer) :
     images = SlideImageSerializer(many=True)
 
     class Meta : 
-        model = SliderConfig
+        model = models.SliderConfig
         exclude = ["id"]
 
 
 class LicenseSerializer (serializers.ModelSerializer) : 
 
     class Meta : 
-        model = License
+        model = models.License
         exclude = ["id","footer"]
 
 class FooterLinkSerializer (serializers.ModelSerializer) : 
 
     class Meta : 
-        model = FooterLink
+        model = models.FooterLink
         exclude = ["id","group_link"]
 
 class GrouLinkFooterSerializer (serializers.ModelSerializer) : 
@@ -45,7 +50,7 @@ class GrouLinkFooterSerializer (serializers.ModelSerializer) :
     links = FooterLinkSerializer(many=True)
 
     class Meta : 
-        model = GrouLinkFooter
+        model = models.GrouLinkFooter
         exclude = ["id","footer"]
 
 class FooterSerializer (serializers.ModelSerializer) :
@@ -55,7 +60,7 @@ class FooterSerializer (serializers.ModelSerializer) :
     group_links = GrouLinkFooterSerializer(many=True)
     
     class Meta : 
-        model = Footer
+        model = models.Footer
         exclude = ["id","is_active"]
 
 

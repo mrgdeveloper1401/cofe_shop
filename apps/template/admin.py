@@ -1,6 +1,10 @@
 from django.contrib import admin
+from django.http.response import Header
 from nested_inline.admin import NestedModelAdmin, NestedTabularInline
+from django.utils.translation import gettext_lazy as _
+
 from apps.template.models import (
+    HeaderSite,
     SlideBox,
     SlideImage,
     SliderConfig,
@@ -71,3 +75,13 @@ class GrouLinkFooterAdmin(admin.ModelAdmin):
 @admin.register(FooterLink)
 class FooterLinkAdmin(admin.ModelAdmin):
     pass
+
+
+@admin.register(HeaderSite)
+class HeaderAdmin(admin.ModelAdmin):
+    list_display = ("id", "title", "is_active", "created_at", "updated_at")
+    list_filter = ("is_active", "created_at")
+    list_display_links = ("id", "title")
+    list_per_page = 20
+    search_fields = ("title",)
+    search_help_text = _("برای جست و جو میتوانید از عنوان هدر استفاده کنید")
