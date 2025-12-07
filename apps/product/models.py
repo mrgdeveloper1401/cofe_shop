@@ -2,34 +2,36 @@ from django.db import models
 from django.utils.text import gettext_lazy as _, slugify
 from mptt.models import MPTTModel, TreeForeignKey
 from apps.core_app.models import ActiveMixin, CreateMixin, UpdateMixin, Image
+from django_ckeditor_5.fields import CKEditor5Field
+
 from user.models import User
 
 
-class Country(ActiveMixin, UpdateMixin, CreateMixin):
-    name = models.CharField(max_length=256, unique=True)
-    # slug = models.SlugField(allow_unicode=True, null=True, blank=True)
-    flag = models.ForeignKey(
-        Image,
-        related_name="country_images",
-        on_delete=models.PROTECT,
-        verbose_name=_("عکس فلگ"),
-        blank=True,
-        null=True
-    )
+# class Country(ActiveMixin, UpdateMixin, CreateMixin):
+#     name = models.CharField(max_length=256, unique=True)
+#     # slug = models.SlugField(allow_unicode=True, null=True, blank=True)
+#     flag = models.ForeignKey(
+#         Image,
+#         related_name="country_images",
+#         on_delete=models.PROTECT,
+#         verbose_name=_("عکس فلگ"),
+#         blank=True,
+#         null=True
+#     )
 
-    class Meta:
-        db_table = "country"
-
-
-    def get_most_brands(self,count=5):
-        return Country.objects.annotate(
-            country_brands=models.Count("brand")
-        ).order_by("-country_brands")[:count]
+#     class Meta:
+#         db_table = "country"
 
 
-    def save(self,**kwarges) : 
-        self.slug = slugify(self.name, allow_unicode=True)
-        return super().save(**kwarges)
+#     def get_most_brands(self,count=5):
+#         return Country.objects.annotate(
+#             country_brands=models.Count("brand")
+#         ).order_by("-country_brands")[:count]
+
+
+#     def save(self,**kwarges) : 
+#         self.slug = slugify(self.name, allow_unicode=True)
+#         return super().save(**kwarges)
 
 
 class Brand(CreateMixin, UpdateMixin, ActiveMixin):
@@ -68,7 +70,7 @@ class ProductCategory(MPTTModel, CreateMixin, UpdateMixin, ActiveMixin):
     )
     parent = TreeForeignKey(
         'self',
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         null=True, blank=True,
         related_name='children',
         verbose_name=_("زیر دسته بندی")
@@ -111,6 +113,11 @@ class Product(CreateMixin, UpdateMixin, ActiveMixin):
         verbose_name=_("برند")
     )
     short_description = models.TextField(_("توضیح کوتاه محصول"), null=True,blank=True)
+    description = CKEditor5Field(
+        _("توضیح در مورد  محصول"),
+        config_name='extends',
+        null=True # TODO, when clean migration remove these field
+    )
     # time_added = models.DateTimeField(auto_now_add=True)
     is_available = models.BooleanField(_("محصول در دسترس هست"), default=True)
     similar_products = models.ManyToManyField(
@@ -152,13 +159,26 @@ class ProductImage(CreateMixin, UpdateMixin, ActiveMixin):
         db_table = "product_image"
 
 
-class ProductFeature(models.Model):
+class Attribute(ActiveMixin, CreateMixin, UpdateMixin):
+    name = models.CharField(
+        _("کلید"),
+        max_length=50
+    )
+    
+
+class ProductFeature(ActiveMixin, CreateMixin, UpdateMixin):
     product = models.ForeignKey(
         to=Product,
         on_delete=models.PROTECT,
         related_name="product_features",
     )
-    key = models.CharField(max_length=128)
+    key = models.ForeignKey(
+        Attribute,
+        on_delete=models.PROTECT,
+        related_name="keys",
+        verbose_name=_("ویژگی"),
+        null=True # TODO, when clean migration remove these field
+    )
     value = models.CharField(max_length=512)
 
     class Meta:

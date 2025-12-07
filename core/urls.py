@@ -18,10 +18,11 @@ schema = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("template/v1/", include("apps.template.urls", namespace="v1_template")),
-    path("product/v1/", include("apps.product.urls")),
+    path("product/v1/", include("apps.product.urls", namespace="v1_product")),
     path("auth/v1/", include("apps.authentication.urls")),
     path("cart/v1/", include("apps.cart.urls")),
     path("docs/v1/", schema.with_ui("swagger",cache_timeout=0), name="swagger"),
+    path("ckeditor5/", include('django_ckeditor_5.urls')),
 ]
 
 if settings.DEBUG :

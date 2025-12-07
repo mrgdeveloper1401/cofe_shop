@@ -1,11 +1,13 @@
 from django.urls import path
-from apps.product import api
+from rest_framework import routers
+from apps.product import views
+
+
+app_name = "v1_product"
+
+router = routers.SimpleRouter()
+router.register("products", views.ProductView, basename="products")
 
 urlpatterns = [
-
-    path("category/<slug>/",api.ProductCategoryAPIView.as_view(),name="product-category"),
-
-    path("search/",api.ProductSearchAPIView.as_view(),name="product-search"),
-
-    path("<slug>/",api.ProductDetailAPIView.as_view(),name="product-detail"),
-]
+    path("parent_category/", views.ParentProductCategoryView.as_view(), name='parent_category'),
+] + router.urls

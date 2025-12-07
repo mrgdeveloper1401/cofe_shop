@@ -1,84 +1,71 @@
 from rest_framework import serializers
-from apps.product.models import (
-    Brand,Country,Product,ProductCategory,ProductImage,
-    ProductFeature
-)
+from apps.product import models
 
 
-class ProductCategorySerializer (serializers.ModelSerializer) : 
+class ParentProductCategorySerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
 
-    class Meta : 
-        model = ProductCategory
-        exclude = ["id"]
-
-class CountrySerializer (serializers.ModelSerializer) : 
-
-    class Meta : 
-        model = Country
-        exclude = ["id"]
-
-class BrandSerializer (serializers.ModelSerializer) : 
-
-    country = CountrySerializer()
-
-    class Meta : 
-        model = Brand
-        exclude = ["id"]
+    class Meta:
+        model = models.ProductCategory
+        fields = ("id", "title", "image_url")
+        
+    def get_image_url(self, obj):
+        return obj.category_image.get_image_url
 
 
-class ProductSerializer (serializers.ModelSerializer) : 
+class ProductImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
 
-    category = ProductCategorySerializer()
+    class Meta:
+        model = models.ProductImage
+        fields = (
+            "image_url",
+        )
 
-    country = CountrySerializer()
-
-    brand = BrandSerializer()
-
-    class Meta : 
-        model = Product
-        fields = ["id","slug","title","main_image","price","country","category","brand"]
-    
-
-class ProductImageSerializer (serializers.ModelSerializer) : 
-
-    class Meta : 
-        model = ProductImage
-        fields = ["image"]
+    def get_image_url(self, obj):
+        return obj.image.get_image_url
 
 
-class ProductFeatureSerializer (serializers.ModelSerializer) : 
-
-    class Meta : 
-        model = ProductFeature
-        fields = ["key","value"]
-
-class ProductDetailSerializer (serializers.ModelSerializer) : 
-    
-    category = ProductCategorySerializer()
-
-    country = CountrySerializer()
-
-    brand = BrandSerializer()
-
+class ProductSerializet(serializers.ModelSerializer):
     images = ProductImageSerializer(many=True)
 
-    product_features = ProductFeatureSerializer(many=True)
+    class Meta:
+        model = models.Product
+        fields = (
+            "id",
+            "category_id",
+            "title",
+            "slug",
+            "price",
+            "discount_percent",
+            "short_description",
+            "is_available",
+            "stock",
+            "meta_title",
+            "meta_description",
+            "created_at",
+            "updated_at",
+            "images"
+        )
 
-    similar_products = ProductSerializer(many=True)
 
-    class Meta : 
-        model = Product
-        fields = "__all__"
+class ProductFetureSerializer(serializers.ModelSerializer):
+    key_name = serializers.SerializerMethodField()
 
-    def to_representation(self,instance) : 
-        context = super().to_representation(instance)
-        context["time_added"] = instance.time_added.strftime("%Y-%M-%d")
-        return context
+    class Meta:
+        model = models.ProductFeature
+        fields = (
+            "key_name",
+            "value"
+        )
+
+    def get_key_name(self, obj):
+        return obj.key.name
 
 
+class RetrieveProductSerializer(ProductSerializet):
+    product_features = ProductFetureSerializer(many=True)
 
-class ProductCategoryResponseSerializer (serializers.Serializer) : 
-
-    products = ProductSerializer(many=True)
-
-    count = serializers.IntegerField()
+    class Meta(ProductSerializet.Meta):
+        model = models.Product
+        fields = ProductSerializet.Meta.fields + ("short_description", "description", "product_features")

@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-from apps.product.serializers import BrandSerializer,CountrySerializer,ProductCategorySerializer
 from apps.template import models
 
 
@@ -72,20 +71,3 @@ class FooterSerializer (serializers.ModelSerializer) :
     class Meta : 
         model = models.Footer
         exclude = ["id","is_active"]
-
-
-class LayoutSerializer (serializers.Serializer) : 
-
-    footer = FooterSerializer()
-
-class IndexSerializer (serializers.Serializer) : 
-
-    car_brands = BrandSerializer(many=True)
-
-    brand_countries = CountrySerializer(many=True)
-
-    yadak_sadra_brands = BrandSerializer(many=True)
-
-    slider = SliderConfigSerializer()
-
-    product_categoris = ProductCategorySerializer(many=True)
