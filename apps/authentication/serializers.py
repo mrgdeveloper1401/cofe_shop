@@ -36,6 +36,17 @@ class LoginSerializer(serializers.Serializer):
     phone = serializers.CharField(validators=(PHONE_VALIDATOR,))
 
 
+class RequestForgetPasswordSerializer(serializers.Serializer):
+    phone = serializers.CharField(validators=(PHONE_VALIDATOR,))
+
+
+class VerifyRequestForgetPasswordSerializer(serializers.Serializer):
+    phone = serializers.CharField(validators=(PHONE_VALIDATOR,))
+    otp = serializers.CharField()
+    new_password = serializers.CharField()
+    confirm_new_password = serializers.CharField()
+
+
 class tokenResponseSerializer(serializers.Serializer):
     access = serializers.CharField()
     refresh = serializers.CharField()

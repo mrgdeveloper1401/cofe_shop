@@ -1,13 +1,12 @@
 from django.urls import path
-from apps.authentication import api
+from apps.authentication import views
 from rest_framework_simplejwt.views import TokenRefreshView
 
 
 urlpatterns = [
-    path("register/", api.RegisterAPIView.as_view(), name="register"),
-    # path("v1/activate/", api.ActivateUserAPIView.as_view(), name="activate"),
-    path("change-password/", api.ChangeUserPassword.as_view(), name="change-password"),
-    # path("v1/token/refresh/",TokenRefreshView.as_view(),name="refresh-token"),
-    path("login/", api.LoginAPIView.as_view(), name="login"),
-    # path("v1/send-otp/", api.SendOptCodeAPIView.as_view(), name="send-otp"),
+    path("register/", views.RegisterAPIView.as_view(), name="register"),
+    path("change-password/", views.ChangeUserPassword.as_view(), name="change-password"),
+    path("login/", views.LoginAPIView.as_view(), name="login"),
+    path("request_phone_forget_password/", views.RequestPhoneforgetPasswordView.as_view(), name='request_otp_phone'),
+    path("verify_forget_password_phone/", views.VerifyRequestPhoneforgetPasswordView.as_view(), name='verify_forget_password_phone')
 ]

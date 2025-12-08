@@ -4,6 +4,7 @@ from django.conf import settings
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from debug_toolbar.toolbar import debug_toolbar_urls
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 
 schema = get_schema_view(
@@ -21,8 +22,12 @@ urlpatterns = [
     path("product/v1/", include("apps.product.urls", namespace="v1_product")),
     path("auth/v1/", include("apps.authentication.urls")),
     path("cart/v1/", include("apps.cart.urls")),
-    path("docs/v1/", schema.with_ui("swagger",cache_timeout=0), name="swagger"),
+    # path("docs/v1/", schema.with_ui("swagger",cache_timeout=0), name="swagger"),
     path("ckeditor5/", include('django_ckeditor_5.urls')),
+    
+    # swagger
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]
 
 if settings.DEBUG :

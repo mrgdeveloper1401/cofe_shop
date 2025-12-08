@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
 
@@ -112,9 +113,11 @@ class ProductReviewSerializer(serializers.ModelSerializer):
             parent_obj = get_object_or_404(models.ProductReview, is_active=True, id=parent_number, product_id=product_id)
             return models.ProductReview.objects.create(user_id=user_id, product_id=product_id, parent_id=parent_obj.id, **validated_data)
 
+    @extend_schema_field(serializers.CharField())
     def get_username(self, obj):
         return obj.user.username
 
+    @extend_schema_field(serializers.CharField())
     def get_is_owner(self, obj):
         user_id = self.context['request'].user.id
         return obj.user_id == user_id

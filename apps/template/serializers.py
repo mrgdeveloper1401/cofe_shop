@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.template import models
@@ -16,6 +17,7 @@ class SlideImageSerializer(serializers.ModelSerializer):
         model = models.SlideImage
         fields = ("image_url",)
 
+    @extend_schema_field(serializers.URLField())
     def get_image_url(self, obj):
         return obj.image.get_image_url
 
@@ -27,6 +29,7 @@ class SlideBoxSerializer(serializers.ModelSerializer):
         model = models.SlideBox
         fields = ("title", "link", "image_url")
 
+    @extend_schema_field(serializers.URLField())
     def get_image_url(self, obj):
         return obj.image.get_image_url
 
