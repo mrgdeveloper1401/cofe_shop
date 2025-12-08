@@ -1,6 +1,7 @@
 import re
 from rest_framework import serializers
 from apps.authentication.validators import PHONE_VALIDATOR
+from user import models
 from user.models import User
 
 # Password regex: must contain uppercase, lowercase, and numeric characters
@@ -58,3 +59,14 @@ class LoginResponseSerializer(serializers.Serializer):
     is_staff = serializers.BooleanField()
     expired_date = serializers.DateTimeField()
     expire_timestamp = serializers.FloatField()
+
+
+class UserNotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.UserNotification
+        fields = (
+            "id",
+            "title",
+            "body",
+            "created_at"
+        )

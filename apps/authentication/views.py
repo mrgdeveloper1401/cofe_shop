@@ -5,8 +5,7 @@ import time
 
 from django.core.cache import cache
 from django.utils import timezone
-from rest_framework import views, response, exceptions, status, permissions
-from django.contrib.auth import get_user_model
+from rest_framework import views, response, exceptions, status, permissions, mixins, viewsets
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
@@ -16,10 +15,11 @@ from apps.authentication.tasks import send_otp
 from core.utils import exceptions as custom_exception
 from core.utils import response as custom_response
 from core.utils.jwt import get_tokens_for_user
+from core.utils.paginations import ScrollPagination
 from core.utils.permissions import NotAuthenticate
 from core.utils.user_ip import user_ip
+from user import models
 from user.models import User
-
 
 
 class RegisterAPIView(views.APIView):
@@ -112,51 +112,6 @@ class LoginAPIView(views.APIView):
         }
         return response.Response(data=data)
 
-
-# class ActivateUserAPIView(views.APIView):
-#     @swagger_auto_schema(
-#         operation_summary="Activate User Account",
-#         request_body=openapi.Schema(
-#             type=openapi.TYPE_OBJECT,
-#             properties={
-#                 "phone" : openapi.Schema(type=openapi.TYPE_STRING),
-#                 "otp_code" : openapi.Schema(type=openapi.TYPE_STRING),
-#             },
-#             required=["phone","otp_code"],
-#         )
-#     )
-#     def post (self,request) : 
-#         try : 
-#             phone = request.data["phone"]
-#         except : 
-#             return response.Response({"phone" : "required ."},status.HTTP_400_BAD_REQUEST)
-
-#         try : 
-#             otp_code = request.data["otp_code"]
-#         except : 
-#             return response.Response({"otp_code" : "required ."},status.HTTP_400_BAD_REQUEST)
-        
-#         # get user 
-#         try : 
-#             user = get_user_model().objects.get(phone=phone)
-#         except get_user_model().DoesNotExist : 
-#             return response.Response({"error" : "user does not exist ."},status.HTTP_400_BAD_REQUEST)
-        
-#         # change otp code to hashed
-#         hashed_otp = hashlib.sha256(str(otp_code).encode("utf-8"))
-#         if constant_time_compare(hashed_otp.hexdigest(),user.opt_code_hashed) : 
-#             user.is_active = True
-#             user.change_otp_code(random.randint(9999,99999))
-#             refresh_token = RefreshToken().for_user(user)
-#             data = {
-#                 "access_token" : str(refresh_token.access_token),
-#                 "refresh_token" : str(refresh_token),
-#                 "user" : serializers.UserSerializer(user).data,
-#             }
-#             return response.Response(data,status.HTTP_200_OK)
-#         else : 
-#             return response.Response({"error" : "invalid otp_code ."},status.HTTP_400_BAD_REQUEST)
-        
 
 class ChangeUserPassword(views.APIView):
     permission_classes = (permissions.IsAuthenticated,)
@@ -292,28 +247,12 @@ class VerifyRequestPhoneforgetPasswordView(views.APIView):
         return custom_response.api_response(data=token, message=message)
 
 
-class SendOptCodeAPIView (views.APIView) : 
+class UserNotificationView(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    serializer_class = serializers.UserNotificationSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    pagination_class = ScrollPagination
 
-    @swagger_auto_schema(
-        operation_summary="Send Otp Code",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                "phone" : openapi.Schema(type=openapi.TYPE_STRING),
-            },
-            required=["phone"],
-        )
-    )
-    def post (self,request) : 
-        try : 
-            phone = request.data.get("phone")
-        except : 
-            return response.Response({"error": "phone is required ."},status=status.HTTP_400_BAD_REQUEST)
-        
-        try : 
-            user = get_user_model().objects.get(phone=phone)
-        except get_user_model().DoesNotExist : 
-            return response.Response({"error" : "user does not exist ."},status.HTTP_400_BAD_REQUEST)
-        
-        send_otp.apply_async(args=[user.id])
-        return response.Response({"data": "opt has been sent ."},status.HTTP_200_OK)
+    def get_queryset(self):
+        return models.UserNotification.objects.filter(
+            user_id=self.request.user.id
+        ).only("title", "created_at", "body")
