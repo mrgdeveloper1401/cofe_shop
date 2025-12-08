@@ -67,4 +67,5 @@ class PublicNotification(ActiveMixin, CreateMixin, UpdateMixin):
     body = models.TextField(_("متن نوتیفکیشن"))
     
     class Meta:
+        ordering = ("id",)
         db_table = "public_notification"

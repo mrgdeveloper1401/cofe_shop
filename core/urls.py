@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path,include
+from django.urls import path, include
 from django.conf import settings
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -24,6 +24,7 @@ urlpatterns = [
     path("cart/v1/", include("apps.cart.urls")),
     # path("docs/v1/", schema.with_ui("swagger",cache_timeout=0), name="swagger"),
     path("ckeditor5/", include('django_ckeditor_5.urls')),
+    path("core/v1/", include("apis.v1.core.urls", namespace="v1_core")),
     
     # swagger
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
